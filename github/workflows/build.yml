@@ -7,24 +7,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.19.6'
-      - name: Create Flutter project
-        run: flutter create --org com.ludoking --project-name ludo_master .
-      - name: Copy our files
+
+      - name: Setup project
         run: |
-          cp -r lib/* /tmp/lib_backup/ 2>/dev/null || true
-          mkdir -p /tmp/lib_backup
-          cp -r lib/* /tmp/lib_backup/
-          flutter create --org com.ludoking --project-name ludo_master .
-          cp -r /tmp/lib_backup/* lib/
+          cp -r lib /tmp/mylib
+          cp pubspec.yaml /tmp/mypubspec.yaml
+          flutter create --org com.ludoking --project-name ludo_master tmp_project
+          cp -r tmp_project/android .
+          cp -r tmp_project/ios .
+          rm -rf tmp_project
+          cp /tmp/mypubspec.yaml pubspec.yaml
+          rm -rf lib
+          cp -r /tmp/mylib lib
+
       - run: flutter pub get
+
       - run: flutter build apk --release
+
       - uses: actions/upload-artifact@v4
         with:
           name: ludo-apk
